@@ -6,9 +6,10 @@ import { isAuthenticated } from "./utils/isAuthenticated";
 import User from "./models/user";
 import { linkController } from "./controllers/link";
 import { swagger } from '@elysiajs/swagger'
-
+import cors from "@elysiajs/cors";
 
 export const app = (new Elysia())
+  .use(cors())
   .use(swagger())
   .decorate({ db })
   .use(authController)
