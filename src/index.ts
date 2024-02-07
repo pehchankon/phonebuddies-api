@@ -9,7 +9,7 @@ import { swagger } from '@elysiajs/swagger'
 import cors from "@elysiajs/cors";
 
 export const app = (new Elysia())
-  .use(cors())
+  .use(cors({credentials: true, origin: 'http://192.168.1.8:8080'}))
   .use(swagger())
   .decorate({ db })
   .use(authController)
