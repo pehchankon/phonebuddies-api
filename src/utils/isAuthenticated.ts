@@ -10,9 +10,13 @@ export const isAuthenticated = (app: Elysia) =>
         secret: 'Fischl von Luftschloss Narfidort'
       })
     )
-    .derive(async ({ cookie: { auth }, jwt, set }) => {
-      const profile = await jwt.verify(auth.value)
-
+    .derive(async ({ cookie: { auth }, jwt, set, headers: {authorization}}) => {
+      if (!authorization) {
+        set.status = 401;
+        return { hello: "hello" };
+      }
+      const profile = await jwt.verify(authorization.substring('Bearer '.length))
+      console.log(authorization.substring('Bearer '.length));
       if (!profile) {
         set.status = 401;
         return { hello: "hello" };
