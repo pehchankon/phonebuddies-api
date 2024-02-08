@@ -14,10 +14,11 @@ export const authController = (app: Elysia) =>
           secret: 'Fischl von Luftschloss Narfidort'
         })
       )
-      .post("/register", async ({ body }) => {
+      .post("/register", async ({ body, set }) => {
         const user = body as User
         const userExists = await userRepository.getByUsername(user.username) != null;
         if (userExists) {
+          set.status = 401;
           return {
             success: false,
             data: null,
@@ -26,10 +27,11 @@ export const authController = (app: Elysia) =>
         }
         return userRepository.createUser(user);
       })
-      .post("/login", async ({ jwt, cookie: { auth }, body }) => {
+      .post("/login", async ({ jwt, cookie: { auth }, body, set }) => {
         const { username: user, password: password } = body as User;
         const fetchUser = await userRepository.getByUsername(user);
         if (fetchUser == null) {
+          set.status = 401;
           return {
             success: false,
             data: null,
@@ -37,6 +39,7 @@ export const authController = (app: Elysia) =>
           };
         }
         if (!(await comparePassword(password, fetchUser.password))) {
+          set.status = 401;
           return { success: false, message: "login failure" };
         }
         auth.set({
