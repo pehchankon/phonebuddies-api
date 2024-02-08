@@ -81,14 +81,8 @@ class LinkRepository {
       WHERE link_id = $link_id
     );
     `);
-    const query3  = db.query(`SELECT COALESCE(SUM(votes.vote_type), 0) as new_rating
-    FROM votes
-    JOIN links ON votes.link_id = links.link_id
-    WHERE links.user_id = (
-      SELECT user_id
-      FROM links
-      WHERE link_id = $link_id
-    ) `);
+    const query3  = db.query(`SELECT COALESCE(SUM(votes.vote_type), 0) AS new_rating
+    FROM votes where link_id = $link_id`);
     query.run(user_id, link_id, vote_type);
     query2.run(link_id);
     // console.log(query2.toString());
