@@ -45,7 +45,8 @@ export const linkController = (app: Elysia) =>
       const isAuthenticated = (user != null);
       if (!isAuthenticated)
         throw new Error("Not authenticated.");
-      return await linkRepository.favoriteLinks(user.user_id);
+      const links = await linkRepository.favoriteLinks(user.user_id);
+      return { count: links.length, links: links }
     })
     .post("/links/:link_id/rating", async ({ user, params: { link_id }, body }) => {
       const { vote_type } = body as { vote_type: number };
