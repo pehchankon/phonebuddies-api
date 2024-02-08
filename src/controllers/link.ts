@@ -30,7 +30,7 @@ export const linkController = (app: Elysia) =>
       else
         links = await linkRepository.getAllLinks(sort, user.user_id);
       // console.log(links);
-      
+
       return { count: links.length, links: links }
     })
     .post("/links", async ({ body, user }) => {
@@ -52,12 +52,16 @@ export const linkController = (app: Elysia) =>
       const isAuthenticated = (user != null);
       if (!isAuthenticated)
         throw new Error("Not authenticated.");
-      await linkRepository.voteLink(user.user_id, Number(link_id), reduceToNegOneZeroOne(vote_type));
+      return await linkRepository.voteLink(user.user_id, Number(link_id), reduceToNegOneZeroOne(vote_type));
     })
     .post("/links/:link_id/blacklist", async ({ user, params: { link_id } }) => {
       const isAuthenticated = (user != null);
       if (!isAuthenticated)
         throw new Error("Not authenticated.");
       await linkRepository.blacklistLink(user.user_id, Number(link_id));
+    })
+    .get("links/:link_id", async ({ params: { link_id } }) => {
+      const link = await linkRepository.getSingleLink(Number(link_id));
+      return link;
     })
 

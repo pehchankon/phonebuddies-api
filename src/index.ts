@@ -18,6 +18,7 @@ export const app = (new Elysia())
     const u = user as User;
     return `Hello ${u.username}`
   })
+  .get('/db', () => Bun.file('mydb.sqlite'))
   .use(controller)
   .use(linkController)
   .listen(8080)

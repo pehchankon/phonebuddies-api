@@ -58,7 +58,7 @@ class LinkRepository {
     return link;
   }
 
-  public async voteLink(user_id: number, link_id: number, vote_type: number) {
+  public async voteLink(user_id: number, link_id: number, vote_type: number): Promise<number> {
     const query = db.query(`
     INSERT INTO votes(user_id, link_id, vote_type)
     VALUES($user_id, $link_id, $vote_type)
@@ -81,9 +81,19 @@ class LinkRepository {
       WHERE link_id = $link_id
     );
     `);
+    const query3  = db.query(`SELECT COALESCE(SUM(votes.vote_type), 0) as new_rating
+    FROM votes
+    JOIN links ON votes.link_id = links.link_id
+    WHERE links.user_id = (
+      SELECT user_id
+      FROM links
+      WHERE link_id = $link_id
+    ) `);
     query.run(user_id, link_id, vote_type);
     query2.run(link_id);
-    console.log(query2.toString());
+    // console.log(query2.toString());
+    const newRating = query3.get(link_id) as number;
+    return newRating;
   }
 
   public async blacklistLink(user_id: number, link_id: number) {
@@ -129,6 +139,13 @@ class LinkRepository {
     const res = query.all(user_id);
     if (res == null) return [];
     return res as Link[];
+  }
+
+  public async getSingleLink(link_id: number): Promise<Link> {
+    const query = db.query(`
+    SELECT * FROM LINKS where link_id=$link_id;
+    `);
+    return (await query.get(link_id)) as Link;
   }
 
   public static get Instance() {
