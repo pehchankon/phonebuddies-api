@@ -58,7 +58,7 @@ class LinkRepository {
     return link;
   }
 
-  public async voteLink(user_id: number, link_id: number, vote_type: number): Promise<number> {
+  public async voteLink(user_id: number, link_id: number, vote_type: number): Promise<Link> {
     const query = db.query(`
     INSERT INTO votes(user_id, link_id, vote_type)
     VALUES($user_id, $link_id, $vote_type)
@@ -81,13 +81,10 @@ class LinkRepository {
       WHERE link_id = $link_id
     );
     `);
-    const query3  = db.query(`SELECT COALESCE(SUM(votes.vote_type), 0) AS new_rating
-    FROM votes where link_id = $link_id`);
     query.run(user_id, link_id, vote_type);
     query2.run(link_id);
     // console.log(query2.toString());
-    const newRating = query3.get(link_id) as number;
-    return newRating;
+    return await this.getSingleLink(link_id);
   }
 
   public async blacklistLink(user_id: number, link_id: number) {
@@ -137,7 +134,30 @@ class LinkRepository {
 
   public async getSingleLink(link_id: number): Promise<Link> {
     const query = db.query(`
-    SELECT * FROM LINKS where link_id=$link_id;
+    SELECT
+      links.link_id,
+      links.user_id,
+      users.username AS uploaded_by,
+      links.link_url,
+      links.description,
+      links.title,
+      links.created_at,
+      COALESCE(SUM(votes.vote_type), 0) AS total_votes,
+      COALESCE(up.phone_points, 0) AS user_phone_points
+    FROM
+      links
+    JOIN
+      users ON links.user_id = users.user_id
+    LEFT JOIN
+      votes ON links.link_id = votes.link_id
+    LEFT JOIN
+      blacklist ON links.link_id = blacklist.link_id
+    LEFT JOIN
+      phone_points up ON links.user_id = up.user_id
+    WHERE
+      links.link_id == $link_id
+    GROUP BY
+      links.link_id, links.user_id, users.username, links.link_url, links.description, links.title, links.created_at
     `);
     return (await query.get(link_id)) as Link;
   }
